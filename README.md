@@ -55,6 +55,18 @@ at 132 = 0x84); entries with the same host and port share one connection.
 > The polling interval defaults to 10 seconds and can be changed per entry
 > (*Settings → Devices & services → Mean Well XDR → Configure*).
 
+## Troubleshooting
+
+**Entities flicker to unavailable, or two power supplies seem to mirror each
+other's commands.** A serial (RS-485) Modbus gateway usually bridges TCP
+connections without tracking which session sent which request. If a second
+Modbus client talks to the same gateway — most commonly a leftover `modbus:`
+YAML hub in `configuration.yaml` polling the same host — the two connections
+cross responses (`unexpected transaction id` errors in the log), polls fail,
+and state bleeds between units. Run **one** client per gateway: remove the
+`modbus:` YAML config for supplies handled by this integration and restart
+Home Assistant.
+
 ## Development
 
 The devcontainer (or `scripts/setup` + `scripts/develop`) starts Home
