@@ -4,13 +4,13 @@
 [![Open your Home Assistant instance and show the repository in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=kulisau&repository=meanwell_xdr-hacs&category=integration)
 [![Validate](https://github.com/kulisau/meanwell_xdr-hacs/actions/workflows/validate.yml/badge.svg)](https://github.com/kulisau/meanwell_xdr-hacs/actions/workflows/validate.yml)
 [![Lint](https://github.com/kulisau/meanwell_xdr-hacs/actions/workflows/lint.yml/badge.svg)](https://github.com/kulisau/meanwell_xdr-hacs/actions/workflows/lint.yml)
-[![License](https://img.shields.io/github/license/kulisau/meanwell_xdr-hacs)](LICENSE)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://github.com/kulisau/meanwell_xdr-hacs/blob/main/LICENSE)
 
 Home Assistant custom integration for
 [Mean Well XDR series](https://www.meanwell.com) DIN-rail power supplies
 (XDR-240 / XDR-480 / XDR-960 in 12/24/36/48 V variants) over Modbus.
 
-The device model comes from the [`xdr-modbus`](../xdr-modbus) Python library,
+The device model comes from the [`xdr-modbus`](https://github.com/kulisau/xdr-modbus) Python library,
 which is **vendored** into this repository (`custom_components/meanwell_xdr/vendor/`),
 so installing this integration needs no extra PyPI package beyond the
 [`modbus-connection`](https://github.com/home-assistant-libs/modbus-connection)
@@ -89,4 +89,4 @@ to a power supply affects the hardware it feeds.
 
 ## License
 
-[Apache-2.0](LICENSE)
+[Apache-2.0](https://github.com/kulisau/meanwell_xdr-hacs/blob/main/LICENSE)
