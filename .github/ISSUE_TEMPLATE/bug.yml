@@ -56,7 +56,7 @@ body:
     required: false
 - type: checkboxes
   attributes:
-    label: "Checklist"
+    label: "Log checklist"
     options:
       - label: I have attached debug logs.
         required: true
