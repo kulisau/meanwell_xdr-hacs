@@ -143,20 +143,23 @@ class ScalingFactors(XDRComponent):
     factory defaults are VOUT/IOUT 0.01, VIN/temperature 0.1. The measurement
     fields themselves use these defaults — this component lets a caller
     verify them against the live report.
+
+    The block is byte-oriented, one factor per byte: register 0x00C0 holds
+    VOUT (bits 0-3) and IOUT (bits 4-7) in its low byte and VIN in its high
+    byte; register 0x00C1 holds TEMPERATURE_1 in its low byte. A factor
+    nibble of 0x0 means the relevant command is unsupported (the property
+    then reads None).
     """
 
-    _vout_iout = raw_register(
+    _vout_iout_vin = raw_register(
         SCALING_FACTOR,
         command="SCALING_FACTOR",
-        description="VOUT/IOUT scaling nibbles",
-    )
-    _vin = raw_register(
-        SCALING_FACTOR + 1, command="SCALING_FACTOR", description="VIN scaling nibble"
+        description="VOUT/IOUT (low byte) and VIN (high byte) scaling nibbles",
     )
     _temperature = raw_register(
-        SCALING_FACTOR + 2,
+        SCALING_FACTOR + 1,
         command="SCALING_FACTOR",
-        description="Temperature scaling nibble",
+        description="TEMPERATURE_1 scaling nibble (low byte)",
     )
 
     @staticmethod
@@ -169,17 +172,17 @@ class ScalingFactors(XDRComponent):
     @property
     def output_voltage_factor(self) -> float | None:
         """Multiplier of READ_VOUT / VOUT_SET (factory default 0.01)."""
-        return self._factor(self._vout_iout, 0)
+        return self._factor(self._vout_iout_vin, 0)
 
     @property
     def output_current_factor(self) -> float | None:
         """Multiplier of READ_IOUT / IOUT_SET (factory default 0.01)."""
-        return self._factor(self._vout_iout, 4)
+        return self._factor(self._vout_iout_vin, 4)
 
     @property
     def input_voltage_factor(self) -> float | None:
         """Multiplier of READ_VIN (factory default 0.1)."""
-        return self._factor(self._vin, 0)
+        return self._factor(self._vout_iout_vin, 8)
 
     @property
     def temperature_factor(self) -> float | None:

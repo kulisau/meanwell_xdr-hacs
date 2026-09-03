@@ -21,23 +21,24 @@ from ..enums import EventCode
 class Statistics(XDRComponent):
     """Non-volatile statistics of the power supply.
 
-    The manual does not document the unit of the run-time counters; they are
-    exposed as raw 32-bit values.
+    The run-time counters use different units: ``total_runtime`` counts
+    minutes since manufacture, ``session_runtime`` counts seconds since the
+    last AC power-on.
     """
 
     total_runtime = uint32(
         TOTAL_PSON_TIME,
         command="TOTAL_PSON_TIME",
-        description="Total run time (non-volatile, unit not documented)",
+        description="Total run time in minutes (non-volatile)",
     )
-    """Total run time since manufacture (32-bit)."""
+    """Total run time since manufacture, in minutes (32-bit)."""
 
     session_runtime = uint32(
         PSON_TIME,
         command="PSON_TIME",
-        description="Run time since AC ON (cleared at AC ON, unit not documented)",
+        description="Run time in seconds since AC ON (cleared at AC ON)",
     )
-    """Run time of the current AC session (32-bit)."""
+    """Run time of the current AC session, in seconds (32-bit)."""
 
     overvoltage_protection_count = integer(
         OVP_CNT, command="OVP_CNT", description="OVP trigger counter"

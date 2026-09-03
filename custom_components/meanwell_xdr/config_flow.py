@@ -9,8 +9,14 @@ from xdr_modbus import XDRPowerSupply, XDRProbe
 import voluptuous as vol
 
 from homeassistant.components.modbus import async_get_temporary_unit
-from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
+from homeassistant.config_entries import (
+    ConfigEntry,
+    ConfigFlow,
+    ConfigFlowResult,
+    OptionsFlow,
+)
 from homeassistant.const import CONF_HOST, CONF_PORT
+from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.selector import (
     NumberSelector,
@@ -22,12 +28,16 @@ from homeassistant.helpers.selector import (
 )
 
 from .const import (
+    CONF_SCAN_INTERVAL,
     CONF_UNIT_ID,
     DEFAULT_PORT,
+    DEFAULT_SCAN_INTERVAL,
     DEFAULT_UNIT_ID,
     DOMAIN,
     PORT_MAX,
     PORT_MIN,
+    SCAN_INTERVAL_MAX,
+    SCAN_INTERVAL_MIN,
     UNIT_ID_MAX,
     UNIT_ID_MIN,
 )
@@ -50,11 +60,48 @@ STEP_USER = vol.Schema(
     }
 )
 
+OPTIONS_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): NumberSelector(
+            NumberSelectorConfig(
+                min=SCAN_INTERVAL_MIN,
+                max=SCAN_INTERVAL_MAX,
+                step=1,
+                mode=NumberSelectorMode.BOX,
+                unit_of_measurement="s",
+            )
+        ),
+    }
+)
+
+
+class XDROptionsFlow(OptionsFlow):
+    """Let the user tune the polling interval."""
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> ConfigFlowResult:
+        """Offer the polling interval, keeping the current value as default."""
+        if user_input is not None:
+            return self.async_create_entry(data=user_input)
+        return self.async_show_form(
+            step_id="init",
+            data_schema=self.add_suggested_values_to_schema(
+                OPTIONS_SCHEMA, self.config_entry.options
+            ),
+        )
+
 
 class XDRConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Mean Well XDR."""
 
     VERSION = 1
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(config_entry: ConfigEntry) -> XDROptionsFlow:
+        """Get the options flow."""
+        return XDROptionsFlow()
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None

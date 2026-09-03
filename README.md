@@ -52,6 +52,9 @@ at 132 = 0x84); entries with the same host and port share one connection.
 > followed by an AC power cycle of the supply — the device defaults to
 > potentiometer (SVR) control.
 
+> The polling interval defaults to 10 seconds and can be changed per entry
+> (*Settings → Devices & services → Mean Well XDR → Configure*).
+
 ## Development
 
 The devcontainer (or `scripts/setup` + `scripts/develop`) starts Home

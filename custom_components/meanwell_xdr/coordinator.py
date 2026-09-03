@@ -1,6 +1,7 @@
 """DataUpdateCoordinator that polls the XDR power supply."""
 
 import logging
+from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -8,7 +9,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 from modbus_connection import ModbusError
 from xdr_modbus import XDRPowerSupply
 
-from .const import DOMAIN, SCAN_INTERVAL
+from .const import CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL, DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -35,7 +36,9 @@ class XDRCoordinator(DataUpdateCoordinator[XDRPowerSupply]):
             _LOGGER,
             name=DOMAIN,
             config_entry=entry,
-            update_interval=SCAN_INTERVAL,
+            update_interval=timedelta(
+                seconds=entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
+            ),
         )
         self.device = device
 

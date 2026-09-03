@@ -1,10 +1,12 @@
 """Sensor platform — measurements, statistics and scaling factors.
 
-Live measurements are the primary entities; run-time counters, protection
-counters, the event log and the reported scaling factors are diagnostic.
+Live measurements are the primary entities; run times, protection counters,
+the event log and the reported scaling factors are diagnostic.
 """
 
-from dataclasses import dataclass
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from datetime import timedelta
 from enum import IntEnum
 
 from homeassistant.components.sensor import (
@@ -24,6 +26,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 from xdr_modbus import EventCode
 
+from . import vendor  # noqa: F401  # adds vendor/ to sys.path before xdr_modbus
 from .coordinator import XDRConfigEntry, XDRCoordinator
 from .entity import XDREntity
 
@@ -36,6 +39,7 @@ class XDRSensorDescription(SensorEntityDescription):
 
     component: str
     attribute: str
+    value_fn: Callable[[object], object] = field(default=lambda value: value)
 
 
 def _measurement(
@@ -43,6 +47,7 @@ def _measurement(
     name: str,
     device_class: SensorDeviceClass,
     unit: str,
+    precision: int,
 ) -> XDRSensorDescription:
     return XDRSensorDescription(
         key=f"measurements_{attribute}",
@@ -52,6 +57,23 @@ def _measurement(
         device_class=device_class,
         native_unit_of_measurement=unit,
         state_class=SensorStateClass.MEASUREMENT,
+        suggested_display_precision=precision,
+    )
+
+
+def _runtime(
+    attribute: str,
+    name: str,
+    value_fn: Callable[[object], object],
+) -> XDRSensorDescription:
+    return XDRSensorDescription(
+        key=f"statistics_{attribute}",
+        name=name,
+        component="statistics",
+        attribute=attribute,
+        device_class=SensorDeviceClass.DURATION,
+        value_fn=value_fn,
+        entity_category=EntityCategory.DIAGNOSTIC,
     )
 
 
@@ -72,33 +94,51 @@ _MEASUREMENTS: tuple[XDRSensorDescription, ...] = (
         "Input voltage",
         SensorDeviceClass.VOLTAGE,
         UnitOfElectricPotential.VOLT,
+        1,
     ),
     _measurement(
         "output_voltage",
         "Output voltage",
         SensorDeviceClass.VOLTAGE,
         UnitOfElectricPotential.VOLT,
+        2,
     ),
     _measurement(
         "output_current",
         "Output current",
         SensorDeviceClass.CURRENT,
         UnitOfElectricCurrent.AMPERE,
+        2,
     ),
     _measurement(
         "internal_temperature",
         "Internal temperature",
         SensorDeviceClass.TEMPERATURE,
         UnitOfTemperature.CELSIUS,
+        1,
     ),
     _measurement(
-        "output_power", "Output power", SensorDeviceClass.POWER, UnitOfPower.WATT
+        "output_power", "Output power", SensorDeviceClass.POWER, UnitOfPower.WATT, 0
+    ),
+)
+
+_RUNTIMES: tuple[XDRSensorDescription, ...] = (
+    # TOTAL_PSON_TIME counts minutes since manufacture, PSON_TIME counts
+    # seconds since the last AC power-on; as durations the frontend picks a
+    # readable unit instead of showing a bare counter.
+    _runtime(
+        "total_runtime",
+        "Total runtime",
+        lambda value: timedelta(minutes=int(value)) if value is not None else None,
+    ),
+    _runtime(
+        "session_runtime",
+        "Session runtime",
+        lambda value: timedelta(seconds=int(value)) if value is not None else None,
     ),
 )
 
 _COUNTERS: tuple[XDRSensorDescription, ...] = (
-    _counter("statistics", "total_runtime", "Total runtime"),
-    _counter("statistics", "session_runtime", "Session runtime"),
     _counter("statistics", "overvoltage_protection_count", "OVP trigger count"),
     _counter("statistics", "overload_protection_count", "OLP trigger count"),
     _counter("statistics", "overheat_protection_count", "OTP trigger count"),
@@ -147,7 +187,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up XDR sensors."""
     coordinator = entry.runtime_data
-    descriptions = (*_MEASUREMENTS, *_COUNTERS, *_EVENTS, *_SCALING)
+    descriptions = (*_MEASUREMENTS, *_RUNTIMES, *_COUNTERS, *_EVENTS, *_SCALING)
     async_add_entities(XDRSensor(coordinator, d) for d in descriptions)
 
 
@@ -169,4 +209,4 @@ class XDRSensor(XDREntity, SensorEntity):
         value = getattr(self._subsystem, self.entity_description.attribute)
         if isinstance(value, IntEnum):
             return value.name.lower()
-        return value
+        return self.entity_description.value_fn(value)

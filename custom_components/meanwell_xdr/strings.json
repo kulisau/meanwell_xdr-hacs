@@ -20,6 +20,20 @@
     },
     "abort": {
       "already_configured": "This power supply is already configured."
+    },
+    "options": {
+      "step": {
+        "init": {
+          "title": "Polling",
+          "description": "How often the power supply is read.",
+          "data": {
+            "scan_interval": "Polling interval"
+          },
+          "data_description": {
+            "scan_interval": "Seconds between read cycles. The device answers one request at a time, and several power supplies on one link share it."
+          }
+        }
+      }
     }
   }
 }
