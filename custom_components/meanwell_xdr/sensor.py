@@ -67,6 +67,7 @@ def _runtime(attribute: str, name: str, unit: str) -> XDRSensorDescription:
         attribute=attribute,
         device_class=SensorDeviceClass.DURATION,
         native_unit_of_measurement=unit,
+        state_class=SensorStateClass.MEASUREMENT,
         suggested_display_precision=0,
         entity_category=EntityCategory.DIAGNOSTIC,
     )
