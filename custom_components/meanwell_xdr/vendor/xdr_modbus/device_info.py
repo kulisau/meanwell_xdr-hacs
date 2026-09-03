@@ -144,22 +144,23 @@ class ScalingFactors(XDRComponent):
     fields themselves use these defaults — this component lets a caller
     verify them against the live report.
 
-    The block is byte-oriented, one factor per byte: register 0x00C0 holds
-    VOUT (bits 0-3) and IOUT (bits 4-7) in its low byte and VIN in its high
-    byte; register 0x00C1 holds TEMPERATURE_1 in its low byte. A factor
-    nibble of 0x0 means the relevant command is unsupported (the property
-    then reads None).
+    The block is byte-oriented, one factor per byte, sent in order:
+    register 0x00C0 holds VOUT (bits 8-11) and IOUT (bits 12-15) of its
+    first byte and VIN (bits 0-3) of its second; register 0x00C1 holds
+    TEMPERATURE_1 (bits 8-11) of its first byte. A factor nibble of 0x0
+    means the relevant command is unsupported (the property then reads
+    None). Verified against a live XDR-480-24, which reports 0x5506 0x0600.
     """
 
     _vout_iout_vin = raw_register(
         SCALING_FACTOR,
         command="SCALING_FACTOR",
-        description="VOUT/IOUT (low byte) and VIN (high byte) scaling nibbles",
+        description="VOUT (bits 8-11), IOUT (bits 12-15), VIN (bits 0-3)",
     )
     _temperature = raw_register(
         SCALING_FACTOR + 1,
         command="SCALING_FACTOR",
-        description="TEMPERATURE_1 scaling nibble (low byte)",
+        description="TEMPERATURE_1 scaling nibble (bits 8-11)",
     )
 
     @staticmethod
@@ -172,19 +173,19 @@ class ScalingFactors(XDRComponent):
     @property
     def output_voltage_factor(self) -> float | None:
         """Multiplier of READ_VOUT / VOUT_SET (factory default 0.01)."""
-        return self._factor(self._vout_iout_vin, 0)
+        return self._factor(self._vout_iout_vin, 8)
 
     @property
     def output_current_factor(self) -> float | None:
         """Multiplier of READ_IOUT / IOUT_SET (factory default 0.01)."""
-        return self._factor(self._vout_iout_vin, 4)
+        return self._factor(self._vout_iout_vin, 12)
 
     @property
     def input_voltage_factor(self) -> float | None:
         """Multiplier of READ_VIN (factory default 0.1)."""
-        return self._factor(self._vout_iout_vin, 8)
+        return self._factor(self._vout_iout_vin, 0)
 
     @property
     def temperature_factor(self) -> float | None:
         """Multiplier of READ_TEMPERATURE_1 (factory default 0.1)."""
-        return self._factor(self._temperature, 0)
+        return self._factor(self._temperature, 8)

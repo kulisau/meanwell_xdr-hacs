@@ -21,6 +21,7 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
 
+from .const import UNIT_ID_MAX, UNIT_ID_MIN
 from .coordinator import XDRConfigEntry, XDRCoordinator
 from .entity import XDREntity
 
@@ -33,7 +34,8 @@ class XDRNumberDescription(NumberEntityDescription):
     attribute: str  # written with the same name on the component
 
 
-# Setpoints whose limits are model-dependent (resolved at runtime).
+# Setpoints whose limits are model-dependent (resolved at runtime). The
+# device encodes both with the 0.01 factor, so 0.01 is the native step.
 _MODEL_NUMBERS: tuple[XDRNumberDescription, ...] = (
     XDRNumberDescription(
         key="control_voltage_setpoint",
@@ -42,6 +44,7 @@ _MODEL_NUMBERS: tuple[XDRNumberDescription, ...] = (
         attribute="voltage_setpoint",
         device_class=NumberDeviceClass.VOLTAGE,
         native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        native_step=0.01,
         mode=NumberMode.BOX,
     ),
     XDRNumberDescription(
@@ -51,6 +54,23 @@ _MODEL_NUMBERS: tuple[XDRNumberDescription, ...] = (
         attribute="current_setpoint",
         device_class=NumberDeviceClass.CURRENT,
         native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
+        native_step=0.01,
+        mode=NumberMode.BOX,
+    ),
+)
+
+# Communication settings. Changing the Modbus address moves the device to
+# the new unit address, so the name carries the warning up front.
+_COMMUNICATION: tuple[XDRNumberDescription, ...] = (
+    XDRNumberDescription(
+        key="configuration_modbus_address",
+        name="Modbus address (device moves to it; reconfigure the entry)",
+        component="configuration",
+        attribute="modbus_id",
+        native_min_value=UNIT_ID_MIN,
+        native_max_value=UNIT_ID_MAX,
+        native_step=1,
+        entity_category=EntityCategory.CONFIG,
         mode=NumberMode.BOX,
     ),
 )
@@ -129,6 +149,7 @@ async def async_setup_entry(
     coordinator = entry.runtime_data
     async_add_entities(
         [XDRNumber(coordinator, d, model_limits=None) for d in _THRESHOLDS]
+        + [XDRNumber(coordinator, d, model_limits=None) for d in _COMMUNICATION]
         + [XDRNumber(coordinator, d, model_limits=True) for d in _MODEL_NUMBERS]
     )
 

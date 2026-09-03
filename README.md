@@ -44,8 +44,15 @@ at 132 = 0x84); entries with the same host and port share one connection.
 | Sensor | Input/output voltage, output current, internal temperature, output power; total/session runtime; OVP/OLP/OTP/ACUVP/ACOVP trigger counters; 3-deep fault event log; live scaling factors |
 | Binary sensor | OTP, OVP, OLP, AC fail, high temperature, back-EMF, overload pre-alarm, EEPROM error (PROBLEM); DC OK; output state |
 | Switch | Output power; Modbus control source (MOD_CTRL) |
-| Number | Voltage/current setpoints (model-aware limits); AC failover/recovery thresholds; DC OK threshold; peak current limit; overload alarm level |
+| Number | Voltage/current setpoints (model-aware limits); AC failover/recovery thresholds; DC OK threshold; peak current limit; overload alarm level; Modbus address (moves the device — reconfigure the entry) |
 | Select | Baud rate, frame format, power-on behavior, overload protection mode, EEPROM mode |
+| Button | Factory reset (restarts the power supply); clear event log |
+
+> **Caution:** *Factory reset* restores factory settings and restarts the
+> supply. *Modbus address* moves the device to a new slave address — the
+> config entry keeps the old one, so edit it (or delete and re-add the
+> entry) after changing the address. Both commands take effect after an AC
+> restart, as does changing the Modbus control switch.
 
 > **Note:** the output switch and the voltage/current setpoints only take
 > effect when the *Modbus control* switch is on (SYSTEM_CONFIG.MOD_CTRL),

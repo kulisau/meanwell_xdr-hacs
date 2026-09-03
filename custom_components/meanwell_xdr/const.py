@@ -4,6 +4,8 @@ from typing import Final
 
 DOMAIN: Final = "meanwell_xdr"
 
+COMMAND_KEY: Final = 0xAA  # the only value command registers accept
+
 CONF_SCAN_INTERVAL: Final = "scan_interval"
 CONF_UNIT_ID: Final = "unit_id"
 

@@ -4,9 +4,7 @@ Live measurements are the primary entities; run times, protection counters,
 the event log and the reported scaling factors are diagnostic.
 """
 
-from collections.abc import Callable
-from dataclasses import dataclass, field
-from datetime import timedelta
+from dataclasses import dataclass
 from enum import IntEnum
 
 from homeassistant.components.sensor import (
@@ -21,6 +19,7 @@ from homeassistant.const import (
     UnitOfElectricPotential,
     UnitOfPower,
     UnitOfTemperature,
+    UnitOfTime,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
@@ -39,7 +38,6 @@ class XDRSensorDescription(SensorEntityDescription):
 
     component: str
     attribute: str
-    value_fn: Callable[[object], object] = field(default=lambda value: value)
 
 
 def _measurement(
@@ -61,18 +59,15 @@ def _measurement(
     )
 
 
-def _runtime(
-    attribute: str,
-    name: str,
-    value_fn: Callable[[object], object],
-) -> XDRSensorDescription:
+def _runtime(attribute: str, name: str, unit: str) -> XDRSensorDescription:
     return XDRSensorDescription(
         key=f"statistics_{attribute}",
         name=name,
         component="statistics",
         attribute=attribute,
         device_class=SensorDeviceClass.DURATION,
-        value_fn=value_fn,
+        native_unit_of_measurement=unit,
+        suggested_display_precision=0,
         entity_category=EntityCategory.DIAGNOSTIC,
     )
 
@@ -122,20 +117,12 @@ _MEASUREMENTS: tuple[XDRSensorDescription, ...] = (
     ),
 )
 
+# TOTAL_PSON_TIME counts minutes since manufacture, PSON_TIME counts seconds
+# since the last AC power-on. As duration sensors the unit is user-switchable
+# in the entity settings, so the raw device units stay the native values.
 _RUNTIMES: tuple[XDRSensorDescription, ...] = (
-    # TOTAL_PSON_TIME counts minutes since manufacture, PSON_TIME counts
-    # seconds since the last AC power-on; as durations the frontend picks a
-    # readable unit instead of showing a bare counter.
-    _runtime(
-        "total_runtime",
-        "Total runtime",
-        lambda value: timedelta(minutes=int(value)) if value is not None else None,
-    ),
-    _runtime(
-        "session_runtime",
-        "Session runtime",
-        lambda value: timedelta(seconds=int(value)) if value is not None else None,
-    ),
+    _runtime("total_runtime", "Total runtime", UnitOfTime.MINUTES),
+    _runtime("session_runtime", "Session runtime", UnitOfTime.SECONDS),
 )
 
 _COUNTERS: tuple[XDRSensorDescription, ...] = (
@@ -209,4 +196,4 @@ class XDRSensor(XDREntity, SensorEntity):
         value = getattr(self._subsystem, self.entity_description.attribute)
         if isinstance(value, IntEnum):
             return value.name.lower()
-        return self.entity_description.value_fn(value)
+        return value
