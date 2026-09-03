@@ -34,6 +34,12 @@ framework.
    power supply is attached to, plus its slave address (factory default
    **131** = 0x83).
 
+Only **Modbus TCP** is supported today: the power supply must be reachable
+through a TCP gateway (an RS-485-to-Ethernet adapter in Modbus TCP or
+RTU-over-TCP mode, or any Modbus TCP serial server). Direct serial
+(USB-RS485), UDP, and RTU/ASCII connections are not currently offered by the
+config flow.
+
 Repeat the last step for every power supply on the bus (e.g. a second unit
 at 132 = 0x84); entries with the same host and port share one connection.
 
@@ -65,14 +71,22 @@ at 132 = 0x84); entries with the same host and port share one connection.
 ## Troubleshooting
 
 **Entities flicker to unavailable, or two power supplies seem to mirror each
-other's commands.** A serial (RS-485) Modbus gateway usually bridges TCP
+other's commands.** A serial (RS-485) Modbus gateway in a transparent
+("protocol conversion" / "simple" / "TCP server") mode bridges TCP
 connections without tracking which session sent which request. If a second
 Modbus client talks to the same gateway — most commonly a leftover `modbus:`
 YAML hub in `configuration.yaml` polling the same host — the two connections
 cross responses (`unexpected transaction id` errors in the log), polls fail,
-and state bleeds between units. Run **one** client per gateway: remove the
-`modbus:` YAML config for supplies handled by this integration and restart
-Home Assistant.
+and state bleeds between units. Remove the `modbus:` YAML config for
+supplies handled by this integration and restart Home Assistant.
+
+Many adapters can instead run in a managed multi-master mode — the exact
+name varies by vendor ("Modbus Multi Host Polling", "Modbus gateway mode",
+"TCP-RTU master", "multi-host"), so check your adapter's manual. In that
+mode the adapter queues requests from several TCP clients and matches
+responses by transaction ID, so multiple clients can share one gateway
+safely. Note this is a property of the **adapter**, not something the
+integration can control.
 
 ## Development
 
