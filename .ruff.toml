@@ -1,0 +1,24 @@
+# Based on https://github.com/home-assistant/core/blob/dev/pyproject.toml,
+# relaxed to the same rule set the xdr-modbus device library uses.
+
+target-version = "py313"
+
+[lint]
+select = [
+    "B",    # flake8-bugbear
+    "E",    # pycodestyle errors
+    "F",    # pyflakes
+    "I",    # isort
+    "UP",   # pyupgrade
+    "W",    # pycodestyle warnings
+]
+
+[lint.isort]
+combine-as-imports = true
+
+[lint.per-file-ignores]
+# The vendor shim must run before "import xdr_modbus"; that order is
+# intentional and must not be "fixed" by the import sorter.
+"custom_components/meanwell_xdr/__init__.py" = ["I001"]
+"custom_components/meanwell_xdr/config_flow.py" = ["I001"]
+"tests/test_vendor.py" = ["I001"]
