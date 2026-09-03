@@ -1,6 +1,7 @@
 # Mean Well XDR
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
+[![Open your Home Assistant instance and show the repository in HACS.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=kulisau&repository=meanwell_xdr-hacs&category=integration)
 [![Validate](https://github.com/kulisau/meanwell_xdr-hacs/actions/workflows/validate.yml/badge.svg)](https://github.com/kulisau/meanwell_xdr-hacs/actions/workflows/validate.yml)
 [![Lint](https://github.com/kulisau/meanwell_xdr-hacs/actions/workflows/lint.yml/badge.svg)](https://github.com/kulisau/meanwell_xdr-hacs/actions/workflows/lint.yml)
 [![License](https://img.shields.io/github/license/kulisau/meanwell_xdr-hacs)](LICENSE)
@@ -15,26 +16,26 @@ so installing this integration needs no extra PyPI package beyond the
 [`modbus-connection`](https://github.com/home-assistant-libs/modbus-connection)
 framework.
 
-> **Prerequisite:** this integration borrows its Modbus connection from
-> Home Assistant's `modbus_connection` integration (part of the new Modbus
-> Connection feature). It requires a Home Assistant release that ships it.
-> Multiple integrations can then share one TCP or serial link, each talking
-> to its own slave address.
+> **Prerequisite:** Home Assistant **2026.9.0 or newer**. This integration
+> borrows its Modbus connection through Home Assistant's shared-connection
+> support in the built-in `modbus` integration: integrations that ask for the
+> same link with the same settings share one connection, each talking to its
+> own slave address. No `modbus:` YAML is needed.
 
 ## Installation (HACS)
 
-1. Add this repository as a custom repository in HACS
-   (type: *Integration*).
+1. Click the **"Open in HACS"** badge at the top of this page (or in HACS:
+   **⋮ (top-right menu) → Custom repositories**, paste
+   `https://github.com/kulisau/meanwell_xdr-hacs`, category *Integration*).
 2. Install **Mean Well XDR**.
 3. Restart Home Assistant.
-4. Make sure a `modbus_connection` entry exists for the link the power
-   supplies are attached to (TCP gateway or serial port).
-5. Add the integration (*Settings → Devices & services → Add integration →
-   Mean Well XDR*), pick that connection, and enter the slave address of the
-   power supply (factory default **131** = 0x83).
+4. Add the integration (*Settings → Devices & services → Add integration →
+   Mean Well XDR*) and enter the host and port of the Modbus TCP gateway the
+   power supply is attached to, plus its slave address (factory default
+   **131** = 0x83).
 
 Repeat the last step for every power supply on the bus (e.g. a second unit
-at 132 = 0x84).
+at 132 = 0x84); entries with the same host and port share one connection.
 
 ## Entities
 

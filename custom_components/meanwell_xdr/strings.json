@@ -2,19 +2,21 @@
   "config": {
     "step": {
       "user": {
-        "description": "Select the Modbus connection the power supply is reached through and its unit address.",
+        "description": "Connect to the Mean Well XDR power supply over Modbus TCP. Integrations that use the same link share one connection.",
         "data": {
-          "connection_entry_id": "Modbus connection",
-          "unit_id": "Modbus unit"
+          "host": "Host",
+          "port": "Port",
+          "unit_id": "Modbus unit address"
         },
         "data_description": {
-          "connection_entry_id": "The Modbus connection this power supply is reached through.",
-          "unit_id": "The power supply's Modbus slave address (default 131 = 0x83)."
+          "host": "The hostname or IP address of the Modbus TCP gateway the power supply is attached to.",
+          "port": "The TCP port of the Modbus gateway.",
+          "unit_id": "The power supply's Modbus slave address (factory default 131 = 0x83)."
         }
       }
     },
     "error": {
-      "cannot_connect": "Failed to connect. Check that the power supply is reachable on the selected connection and unit."
+      "cannot_connect": "Failed to connect. Check that the power supply is reachable on the given host, port and unit address."
     },
     "abort": {
       "already_configured": "This power supply is already configured."

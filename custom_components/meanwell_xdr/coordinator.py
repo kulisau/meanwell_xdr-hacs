@@ -20,7 +20,7 @@ class XDRCoordinator(DataUpdateCoordinator[XDRPowerSupply]):
 
     ``async_update`` fans out to each component (each reads only its own
     registers), so adding/removing entities never changes what is polled. The
-    ``modbus_connection`` entry owns the connection; this coordinator only reads.
+    ``modbus`` integration owns the connection; this coordinator only reads.
     """
 
     def __init__(
